@@ -32,3 +32,27 @@ steps:
           export SRCCLR_SCM_REF_TYPE=branch
           export SRCCLR_SCM_REV="$(build.buildNumber)"
           curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan --allow-dirty --update-advisor
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '/home/vsts/work/1/s/node_modules'
+    Contents: '**/*'
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '/home/vsts/work/1/s'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+- task: Veracode@3
+  inputs:
+    ConnectionDetailsSelection: 'Endpoint'
+    AnalysisService: 'Veracode'
+    veracodeAppProfile: '$(system.teamProject)'
+    version: '$(build.buildNumber)'
+    filepath: '$(build.artifactstagingdirectory)'
+    createSandBox: false
+    createProfile: true
+    failTheBuildIfVeracodeScanDidNotInitiate: false
+    scanStatusCheckInterval: '60'
+    importResults: true
+    failBuildOnPolicyFail: false
